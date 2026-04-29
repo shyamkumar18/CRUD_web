@@ -1,53 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-<head></head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CURD APP</title>
+    <title>CRUD APP</title>
     <style>
         .hidden { display: none; }
     </style>
     <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
     <nav>
-        <a herf="#">CURD APP</a>
+        <a href="#">CRUD APP</a>
     </nav>   
-    <br>
-    <br>
-    <br>
-        <div id="authentication">
-            <h1 style="color: grey;">Authentication</h1>
-            <br>
-            <br>
-            <h2 style="color: grey;">Register</h2>
-            <br>
-            <h2 style="color: grey;">Login</h2>
-            <br>
-            <input type="text" id="username" placeholder="ENTER USERNAME">
-            <input type="password" id="password" placeholder="ENTER PASSWORD">
-            <br>
-            <br>
-            <button onclick="register()">REGISTER</button>
-            <br>
-            <br>
-            <button onclick="login()">LOGIN</button>
+
+    <div id="authentication">
+        <h1 style="color: grey;">Authentication</h1>
+
+        <h2 style="color: grey;">Register / Login</h2>
+
+        <input type="text" id="username" placeholder="ENTER USERNAME">
+        <input type="password" id="password" placeholder="ENTER PASSWORD">
+
+        <br><br>
+
+        <button onclick="register()">REGISTER</button>
+        <br><br>
+        <button onclick="login()">LOGIN</button>
+    </div>
+
+    <div id="postSection" class="hidden">
+        <h1 style="color: grey;">Create Post</h1>
+
+        <textarea id="postHead" placeholder="Title"></textarea>
+        <textarea id="postDetails" placeholder="Content"></textarea>
+
+        <br><br>
+
+        <button onclick="createPost()">Create Post</button>
+
+        <div id="getPosts">
+            <h1>Posts</h1>
         </div>
-        <div id="postSection" class="hidden">
-            <h1 style="color: grey;">Create Post</h1>
-            <br>
-            <textarea type="text" id="postHead" placeholder="Title"></textarea>
-            <textarea id="postDetails" placeholder="Content"></textarea>
-            <br>
-            <br>
-            <button onclick="createPost()">Create Post</button>
-            <br>
-            <br>
-            <div id="getPosts">
-                <h1>Posts</h1>
-            </div>
-            <br>
-            <button onclick="logout()">Logout</button>
-        </div>
+
+        <br>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
     <script src="app.js"></script>
 </body>
