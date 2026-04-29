@@ -1,155 +1,177 @@
 const API_URL = "http://localhost:3000/api";
 let token = localStorage.getItem("token");
 
-function showPostSection(){
+// ---------------- UI ----------------
+function showPostSection() {
     document.getElementById("authentication").classList.add("hidden");
     document.getElementById("postSection").classList.remove("hidden");
 }
 
-function register(){
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+// ---------------- REGISTER ----------------
+function register() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+        alert("Username and password required");
+        return;
+    }
 
     fetch(`${API_URL}/auth/register`, {
         method: "POST",
-        headers: { "Content-Type" : "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert("Registration completed! Try logIn");
-        } else {
-            alert("Registration failed");
-        }
-    });
+    .then(res => {
+        if (!res.ok) throw new Error("Registration failed");
+        return res.json();
+    })
+    .then(() => alert("Registration successful. Please login."))
+    .catch(err => alert(err.message));
 }
 
-
+// ---------------- LOGIN ----------------
 function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+        alert("Username and password required");
+        return;
+    }
 
     fetch(`${API_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type" : "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
     })
-    .then(response => response.json())
+    .then(res => {
+        if (!res.ok) throw new Error("Login failed");
+        return res.json();
+    })
     .then(data => {
-        if (data.token) {
-            token = `Bearer ${data.token}`;
-            localStorage.setItem("token", token);
-        } else {
-            alert("Login failed");
-        }
-    });
-    // showPostSection();
-    // getPosts();
+        if (!data.token) throw new Error("Invalid response");
+
+        token = `Bearer ${data.token}`;
+        localStorage.setItem("token", token);
+
+        showPostSection();
+        getPosts();
+    })
+    .catch(err => alert(err.message));
 }
 
-function createPost(){
-    const title = document.getElementById("postHead").value;
-    const content  = document.getElementById("postDetails").value;
+// ---------------- CREATE POST ----------------
+function createPost() {
+    const title = document.getElementById("postHead").value.trim();
+    const content = document.getElementById("postDetails").value.trim();
 
-    fetch(`${API_URL}/posts/`, {
+    if (!title || !content) {
+        alert("Title and content required");
+        return;
+    }
+
+    fetch(`${API_URL}/posts`, {
         method: "POST",
-        headers: { "Content-Type" : "application/json" ,
-            'Authorization': `${token}`
+        headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: token })
         },
         body: JSON.stringify({ title, content })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data._id) {
-            alert("Post created successfully");
-            document.getElementById("postHead").value = "";
-            document.getElementById("postDetails").value = "";
-            getPosts();
-        } else {
-            alert("Error creating post");
-        }
-    });
-    getPosts();
+    .then(res => {
+        if (!res.ok) throw new Error("Create failed");
+        return res.json();
+    })
+    .then(() => {
+        alert("Post created");
+        document.getElementById("postHead").value = "";
+        document.getElementById("postDetails").value = "";
+        getPosts();
+    })
+    .catch(err => alert(err.message));
 }
 
-function getPosts(){
+// ---------------- GET POSTS ----------------
+function getPosts() {
     fetch(`${API_URL}/posts`, {
-        headers: { "Authorization": `${token}` }
+        headers: token ? { Authorization: token } : {}
     })
-    .then(response => response.json())
-    .then(posts =>{
-        const showPost = document.getElementById("getPosts");
-        showPost.innerHTML = ""
-        posts.forEach(post => {
-            let title = post.title;
-            let content = post.content;
+    .then(res => {
+        if (!res.ok) throw new Error("Fetch failed");
+        return res.json();
+    })
+    .then(posts => {
+        const container = document.getElementById("getPosts");
+        container.innerHTML = "";
 
-            let h1Element = document.createElement("h1");
-            let h3Element = document.createElement("h3");
-            let btnUpdate = document.createElement("button");
-            let btnDelete = document.createElement("button");
+        posts.forEach(post => {
+            const h1 = document.createElement("h1");
+            const h3 = document.createElement("h3");
+            const btnUpdate = document.createElement("button");
+            const btnDelete = document.createElement("button");
+
+            h1.innerText = post.title;      // safer
+            h3.innerText = post.content;
 
             btnUpdate.innerText = "Update";
             btnDelete.innerText = "Delete";
 
-            btnUpdate.addEventListener("click", () => updatePost(post._id));
-            btnDelete.addEventListener("click", () => deletePost(post._id));
+            btnUpdate.onclick = () => updatePost(post._id);
+            btnDelete.onclick = () => deletePost(post._id);
 
-            h1Element.innerHTML = title;
-            h3Element.innerHTML = content;
-
-            showPost.appendChild(h1Element);
-            showPost.appendChild(h3Element);
-            showPost.appendChild(btnUpdate);
-            showPost.appendChild(btnDelete);
+            container.append(h1, h3, btnUpdate, btnDelete);
         });
-    });
+    })
+    .catch(err => console.error(err));
 }
-function updatePost(_id) {
+
+// ---------------- UPDATE POST ----------------
+function updatePost(id) {
     const newTitle = prompt("Enter new title:");
     const newContent = prompt("Enter new content:");
-    console.log(_id)
 
-    fetch(`${API_URL}/posts/${_id}`, {
+    if (!newTitle || !newContent) return;
+
+    fetch(`${API_URL}/posts/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `${token}`
+            ...(token && { Authorization: token })
         },
-        body : JSON.stringify({ title: newTitle, content: newContent })
+        body: JSON.stringify({ title: newTitle, content: newContent })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data._id) {
-            alert("Post updated successfully");
-            getPosts();
-        } else {
-            alert("Error updating post");
-        }
-    });
+    .then(res => {
+        if (!res.ok) throw new Error("Update failed");
+        return res.json();
+    })
+    .then(() => {
+        alert("Post updated");
+        getPosts();
+    })
+    .catch(err => alert(err.message));
 }
 
-function deletePost(_id) {
-    console.log(_id)
-    if (confirm("Are you sure you want to delete this post?")) {
-        fetch(`${API_URL}/posts/${_id}`, {
-            method: "DELETE",
-            headers: { 'Authorization': `${token}` }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                alert("Post deleted successfully");
-                getPosts();
-            } else {
-                alert("Error deleting post");
-            }
-        });
-    }
+// ---------------- DELETE POST ----------------
+function deletePost(id) {
+    if (!confirm("Delete this post?")) return;
+
+    fetch(`${API_URL}/posts/${id}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: token } : {}
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Delete failed");
+        return res.json();
+    })
+    .then(() => {
+        alert("Post deleted");
+        getPosts();
+    })
+    .catch(err => alert(err.message));
 }
 
-
+// ---------------- LOGOUT ----------------
 function logout() {
     localStorage.removeItem("token");
     token = null;
@@ -161,11 +183,13 @@ function logout() {
     document.getElementById("password").value = "";
     document.getElementById("postHead").value = "";
     document.getElementById("postDetails").value = "";
-
     document.getElementById("getPosts").innerHTML = "";
-    alert("You have been logged out successfully");
+
+    alert("Logged out");
 }
 
+// ---------------- AUTO LOGIN ----------------
 if (token) {
     showPostSection();
+    getPosts();
 }
