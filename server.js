@@ -11,7 +11,7 @@ const secret = process.env.JWT_SECRET || "ace1812";
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI || "mongodb+srv://shyam18:shyamkumar18@cluster0.9tzmpza.mongodb.net/")
+mongoose.connect(process.env.MONGO_URI || "mongodb+srv://shyam18:shyam1812@cluster0.9tzmpza.mongodb.net/")
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("Could not connect to MongoDB", err));
 
